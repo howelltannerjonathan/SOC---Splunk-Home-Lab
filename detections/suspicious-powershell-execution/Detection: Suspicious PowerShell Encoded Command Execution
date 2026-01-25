@@ -1,0 +1,43 @@
+Objective
+Detect PowerShell executions that use encoded commands, a common obfuscation technique used by malware and post-exploitation frameworks.
+
+Data Source
+
+  -Sysmon Operational Logs
+
+  -Event ID 1 (Process Creation)
+
+Why This Matters
+Attackers frequently abuse PowerShell’s -EncodedCommand flag to hide malicious intent, bypass basic logging, and evade signature-based detections. This behavior is strongly associated with real-world malware, ransomware, and living-off-the-land attacks.
+
+Detection Logic Summary
+This detection identifies:
+
+  -PowerShell or PowerShell Core (powershell.exe / pwsh.exe)
+
+  -Process creation events
+
+  -Use of encoded command flags (-enc, -EncodedCommand)
+
+  -Full command-line visibility via Sysmon telemetry
+
+Detection Logic:
+
+  index=sysmon
+| rex field=_raw "<EventID(?:[^>]*)>(?<EventID>\d+)</EventID>"
+| search EventID=1
+| rex field=_raw "(?i)<Data Name=['\"]Image['\"]>(?<Image>[^<]+)</Data>"
+| rex field=_raw "(?i)<Data Name=['\"]CommandLine['\"]>(?<CommandLine>[^<]+)</Data>"
+| search Image="*\\powershell.exe" OR Image="*\\pwsh.exe"
+| regex CommandLine="(?i)\s-(enc|encodedcommand)\b"
+| table _time host Image CommandLine
+| sort - _time
+
+
+Validation
+
+-Detection was validated by executing both benign and encoded PowerShell commands on the Windows endpoint
+
+-Encoded commands successfully triggered Sysmon Event ID 1 and were indexed into Splunk
+
+-Results were confirmed using Verbose search mode to ensure full field extraction
