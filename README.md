@@ -1,111 +1,58 @@
-# Splunk SOC Home Lab
+Splunk SOC Home Lab
+Overview
 
-+ Overview
-I built this Splunk SOC home lab to get hands-on experience with how a SIEM actually operates in a real SOC-style environment. The goal wasn’t just to install Splunk and ingest logs, but to understand how SIEMs behave when you have to manage storage, services, data flow, and troubleshooting issues that come up in practice.
+I built this Splunk SOC home lab to get hands-on experience with how a SIEM actually operates in a real SOC-style environment. The goal wasn’t just to install Splunk and ingest logs, but to understand how SIEMs behave when you have to manage storage, services, data flow, and troubleshoot issues that come up in practice.
 
-This lab focuses on **defensive security**, **SIEM operations**, and **incident investigation**, rather than offensive exploitation or red-team tooling.
+This lab focuses on defensive security, SIEM operations, and incident investigation rather than offensive exploitation or red-team tooling.
 
+What This Lab Includes
 
-+ What This Lab Includes
+This lab consists of a Linux-based Splunk Enterprise SIEM and a Windows endpoint generating realistic security telemetry. It includes Windows Security Event Logs, System and Application logs, and Sysmon data. Logs are routed to dedicated indexes, and the environment incorporates real-world troubleshooting and operational fixes.
 
-- A Linux-based Splunk Enterprise SIEM
-- A Windows endpoint generating realistic security telemetry
-- Windows Security Event Logs and Sysmon data
-- Proper index separation and log routing
-- Real-world troubleshooting and operational fixes
+The lab is designed to serve as a foundation for building detections, investigating incidents, and documenting SOC workflows.
 
-The environment is designed to serve as a foundation for building detections, investigating incidents, and documenting SOC workflows.
+Architecture Summary
+Splunk SIEM Server
 
+The SIEM runs on Ubuntu Server 22.04 LTS with Splunk Enterprise installed as the primary log ingestion and analysis platform. Splunk is managed using systemd and runs under a non-root service account. The virtual disk was expanded and resized using LVM to support sustained log ingestion.
 
-+ Architecture Summary
+Splunk is configured to receive logs over TCP on port 9997, run persistently across reboots, separate security telemetry into dedicated indexes, and enforce proper disk usage thresholds to prevent search failures.
 
-+ Splunk SIEM Server
-- **OS:** Ubuntu Server 22.04 LTS  
-- **SIEM:** Splunk Enterprise  
-- **Role:** Central log ingestion and analysis platform  
-- **Service Management:** systemd running under a non-root service account  
-- **Storage:** Virtual disk expanded and resized using LVM  
+Windows Endpoint
 
-Splunk is configured to:
-- Receive logs over TCP/9997
-- Run persistently across reboots
-- Separate security telemetry into dedicated indexes
-- Enforce proper disk usage thresholds
+The monitored endpoint runs Windows 10 and is configured to generate realistic security telemetry. Log sources include Windows Security, System, and Application logs, as well as Sysmon Operational logs.
 
+Sysmon is installed to provide enhanced endpoint visibility, and the Splunk Universal Forwarder is used to collect and forward logs to the SIEM. This endpoint generates authentication events, process activity, and system behavior suitable for detection and investigation practice.
 
-+ Windows Endpoint
-- **OS:** Windows 10  
-- **Role:** Monitored endpoint  
-- **Log Sources:**
-  - Windows Security Event Logs
-  - Windows System and Application Logs
-  - Sysmon Operational Logs  
+Index Strategy
 
-**Installed tools:**
-- Sysmon for enhanced endpoint visibility
-- Splunk Universal Forwarder for log collection
+To keep data organized and investigation-friendly, logs are separated into dedicated indexes. Windows Security, System, and Application logs are stored in the windows index, while Sysmon telemetry is stored in the sysmon index. Splunk system indexes are used only for internal health and performance data. No security data is stored in the default main index.
 
-This system generates authentication events, process activity, and system behavior that can be used for detection and investigation practice.
+Key Skills Demonstrated
 
+This project demonstrates practical experience with Splunk Enterprise installation and configuration, Universal Forwarder deployment, forwarder connectivity troubleshooting, Linux disk expansion and LVM resizing, systemd service management, running Splunk as a non-root service account, log ingestion validation, index hygiene, and SOC-style troubleshooting and verification.
 
-+ Index Strategy
+Challenges Encountered and Resolved
 
-To keep data clean and investigation-friendly, logs are separated into dedicated indexes:
+While building this lab, I worked through several real-world issues. These included Splunk searches failing due to disk pressure, expanding the virtual disk and resizing the Linux filesystem, fixing startup failures caused by root-owned Splunk installations, migrating Splunk to run correctly as a service-managed user, and verifying persistent startup and overall service health.
 
-- **windows** – Windows Security, System, and Application logs  
-- **sysmon** – Sysmon Operational telemetry  
-- **Splunk system indexes** (`_internal`, `_metrics`, `_introspection`) – used for Splunk health and performance data  
+Working through these issues reinforced how important infrastructure stability and visibility are in a SOC environment.
 
-No security data is stored in the default `main` index.
+Current State
 
+The environment is stable and fully operational. Logs are actively flowing from the Windows endpoint, indexing and searching are functioning normally, disk and service issues have been resolved, and VM snapshots are in place for safe rollback.
 
+Planned Next Steps
 
-## Key Skills Demonstrated
+Next steps for this lab include building and documenting SOC detections, performing incident investigations and writing reports, mapping activity to MITRE ATT&CK techniques, creating dashboards and visualizations, and introducing controlled attack simulations to validate detections.
 
-This project demonstrates practical experience with:
+Troubleshooting and Lessons Learned
+Sysmon Ingestion Issue
 
-- Splunk Enterprise installation and configuration
-- Forwarder deployment and connectivity troubleshooting
-- Linux disk expansion and LVM resizing
-- systemd service management
-- Running Splunk as a non-root service account
-- Log ingestion validation and index hygiene
-- SOC-style troubleshooting and verification
+During setup, Windows event logs were successfully ingesting into Splunk, but Sysmon events were not appearing, even though Sysmon was installed and generating logs locally on the Windows endpoint.
 
+Windows Security, System, and Application logs were searchable, but the sysmon index remained empty. Inputs appeared to be configured correctly, and Sysmon activity was visible locally, which made the issue non-obvious.
 
-+ Challenges Encountered and Resolved
+After validating the Sysmon service, local event generation, forwarder connectivity, and input configuration, the root cause was identified as a service permission issue. The Splunk Universal Forwarder was not running with sufficient privileges to read the Sysmon Operational event log, which is a protected Windows event channel.
 
-While building this lab, I worked through several real-world issues, including:
-
-- Splunk searches failing due to disk pressure
-- Expanding the VM disk and resizing the Linux filesystem
-- Fixing Splunk startup failures caused by root-owned installations
-- Migrating Splunk to run correctly as a service-managed user
-- Verifying persistent startup and service health
-
-These issues helped reinforce how important infrastructure stability is in a SOC environment.
-
-
-
-+ Current State
-
-- Environment is stable and operational
-- Logs are actively flowing from the Windows endpoint
-- Indexing and searching are functioning normally
-- Disk and service issues have been resolved
-- VM snapshots are in place for safe rollback
-
-
-
-+ Planned Next Steps
-
-- Build and document SOC detections
-- Perform incident investigations and write reports
-- Map activity to MITRE ATT&CK techniques
-- Create dashboards and visualizations
-- Introduce controlled attack simulations to validate detections
-
-
-
-+ Disclaimer
-This lab is for educational and defensive security purposes only. All activity occurs in an isolated environment, and no external systems are targeted.
+The issue was resolved by changing the SplunkForwarder service to run under the Local System account. Once the service was restarted, Sysmon events immediately began ingesting into Splunk and became searchable in the sysmon index.
