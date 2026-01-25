@@ -46,7 +46,7 @@ Planned Next Steps
 
 Next steps for this lab include building and documenting SOC detections, performing incident investigations and writing reports, mapping activity to MITRE ATT&CK techniques, creating dashboards and visualizations, and introducing controlled attack simulations to validate detections.
 
-Troubleshooting and Lessons Learned
+**Troubleshooting and Lessons Learned**
 Sysmon Ingestion Issue
 
 During setup, Windows event logs were successfully ingesting into Splunk, but Sysmon events were not appearing, even though Sysmon was installed and generating logs locally on the Windows endpoint.
