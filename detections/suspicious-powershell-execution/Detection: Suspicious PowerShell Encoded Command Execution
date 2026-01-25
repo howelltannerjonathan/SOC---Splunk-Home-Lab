@@ -36,8 +36,6 @@ Detection Logic:
 
 Validation
 
--Detection was validated by executing both benign and encoded PowerShell commands on the Windows endpoint
-
--Encoded commands successfully triggered Sysmon Event ID 1 and were indexed into Splunk
+-The detection was validated by executing PowerShell encoded and IEX-based commands on the Windows endpoint. Events were successfully ingested via the Splunk Universal Forwarder and detected in real time through both local and Tailscale-accessed Splunk Web interfaces.
 
 -Results were confirmed using Verbose search mode to ensure full field extraction
